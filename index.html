@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weekly Planner App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Top Menu with interactive buttons and theme toggle -->
+    <nav class="navbar">
+      <ul class="menu">
+         <li data-page="daily" class="active">Daily View</li>
+         <li data-page="weekly">Weekly View</li>
+         <li data-page="calendar">Calendar</li>
+         <li data-page="stats">Statistics</li>
+      </ul>
+      <button id="toggleTheme" title="Toggle Dark/Light Mode">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="icon theme-icon" viewBox="0 0 16 16">
+           <path d="M6 0a6 6 0 0 0 0 12A6 6 0 0 1 6 0z"/>
+         </svg>
+      </button>
+    </nav>
+
+    <!-- Pages Container -->
+    <div class="content">
+       <!-- Daily View Page -->
+       <section id="dailyView" class="page">
+         <div class="daily-navigation">
+           <button id="prevDay">◀</button>
+           <h2 id="dailyDate">Today</h2>
+           <button id="nextDay">▶</button>
+         </div>
+         <div class="daily-controls">
+           <button id="openActivityModal" class="add-activity-btn">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon pencil-icon" viewBox="0 0 16 16">
+               <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2L3 10.207V13h2.793L14 4.793 11.207 2z"/>
+             </svg>
+             + Add Activity
+           </button>
+           <input type="text" id="searchActivity" placeholder="Search activities...">
+         </div>
+         <div id="dailyActivities" class="activities-list"></div>
+       </section>
+
+       <!-- Weekly View Page (vertical list) -->
+       <section id="weeklyView" class="page hidden">
+         <h2>Weekly Overview</h2>
+         <div id="weeklyContainer" class="weekly-container"></div>
+       </section>
+
+       <!-- Calendar View Page -->
+       <section id="calendarView" class="page hidden">
+         <div id="calendarHeader" class="calendar-header"></div>
+         <div id="calendarContainer" class="calendar"></div>
+         <div id="calendarActivities" class="activities-list"></div>
+       </section>
+
+       <!-- Statistics Page -->
+       <section id="statsView" class="page hidden">
+         <h2>Statistics</h2>
+         <div class="stats-widgets">
+           <div class="widget" id="activitySummary">
+             <!-- Summary stats injected via script -->
+           </div>
+           <canvas id="chartCanvas" width="400" height="200"></canvas>
+         </div>
+         <div class="export-import">
+           <button id="exportCSV" class="export-btn">Export CSV</button>
+           <button id="importCSVBtn" class="import-btn">Import CSV</button>
+           <input type="file" id="importCSV" accept=".csv" style="display:none;">
+         </div>
+         <div id="statsContent" class="stats-content"></div>
+       </section>
+    </div>
+  </div>
+
+  <!-- Modal for Adding/Editing Activities -->
+  <div id="activityModal" class="modal hidden" style="display: none;">
+      <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2>Add/Edit Activity</h2>
+          <form id="activityForm">
+             <label for="activityTitle">Activity Title:</label>
+             <input type="text" id="activityTitle" required>
+
+             <label for="activityCategory">Category:</label>
+             <select id="activityCategory">
+                <option value="Routine">Routine</option>
+                <option value="Necessary">Necessary</option>
+                <option value="Pleasurable">Pleasurable</option>
+             </select>
+
+             <label for="activityEmotion">Emotion:</label>
+             <select id="activityEmotion">
+                <option value="Happy">Happy</option>
+                <option value="Sad">Sad</option>
+                <option value="Stressed">Stressed</option>
+                <option value="Anxious">Anxious</option>
+                <option value="Excited">Excited</option>
+                <option value="Calm">Calm</option>
+                <option value="Angry">Angry</option>
+                <option value="Bored">Bored</option>
+                <option value="Content">Content</option>
+                <option value="Frustrated">Frustrated</option>
+             </select>
+
+             <label for="emotionIntensity">Emotional Intensity: <span id="intensityValue">50%</span></label>
+             <input type="range" id="emotionIntensity" min="0" max="100" value="50">
+
+             <label for="activityTime">Time Slot:</label>
+             <select id="activityTime">
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+             </select>
+
+             <label for="activityNotes">Notes (optional):</label>
+             <textarea id="activityNotes" placeholder="Additional details..."></textarea>
+
+             <input type="hidden" id="selectedDate" value="">
+             <button type="submit" class="save-btn">Save Activity</button>
+          </form>
+      </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
