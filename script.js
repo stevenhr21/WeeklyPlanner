@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
       default: return '';
     }
   }
-
+  
   // Data storage for activities keyed by "YYYY-MM-DD"
   let activities = {};
   let selectedDate = new Date().toISOString().slice(0,10);
@@ -58,13 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
       activities = JSON.parse(stored);
     }
   }
-
+  
   // Save activities to localStorage
   function saveActivities() {
     localStorage.setItem("weeklyPlannerActivities", JSON.stringify(activities));
   }
-
-  // Call loadActivities on startup
+  
   loadActivities();
 
   // Helper: ordinal suffix
@@ -75,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(j === 3 && k !== 13) return n + "rd";
     return n + "th";
   }
-
+  
   // Render Daily View (with emoji)
   const dailyDateEl = document.getElementById('dailyDate');
   const dailyActivitiesList = document.getElementById('dailyActivities');
@@ -117,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
       dailyActivitiesList.appendChild(card);
     });
   }
-
+  
   // Render Weekly View (vertical list)
   const weeklyContainer = document.getElementById('weeklyContainer');
   function renderWeeklyView() {
@@ -149,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
       weeklyContainer.appendChild(dayDiv);
     }
   }
-
+  
   // Render Calendar View (with emoji)
   const calendarContainer = document.getElementById('calendarContainer');
   const calendarHeader = document.getElementById('calendarHeader');
@@ -193,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
       grid.appendChild(dayCell);
     }
     calendarContainer.appendChild(grid);
-
+    
     document.getElementById('prevMonth').addEventListener('click', () => {
       currentMonth--;
       if(currentMonth < 0) {
@@ -202,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       renderCalendar();
     });
-
+    
     document.getElementById('nextMonth').addEventListener('click', () => {
       currentMonth++;
       if(currentMonth > 11) {
@@ -212,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
       renderCalendar();
     });
   }
-
+  
   function renderCalendarActivities(dateStr) {
     calendarActivities.innerHTML = `<h3>Activities for ${new Date(dateStr).toDateString()}</h3>`;
     const acts = activities[dateStr] || [];
@@ -231,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
       calendarActivities.appendChild(card);
     });
   }
-
+  
   // Render Statistics and update chart
   function renderStatistics() {
     let totalActivities = 0;
@@ -258,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('statsContent').innerHTML = `<p>More detailed stats coming soon...</p>`;
     updateChart(routineCount, necessaryCount, pleasurableCount);
   }
-
+  
   function updateChart(routine, necessary, pleasurable) {
     const canvas = document.getElementById('chartCanvas');
     const ctx = canvas.getContext('2d');
@@ -279,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.fillText(value, index * (barWidth + gap) + gap, canvas.height - barHeight - 30);
     });
   }
-
+  
   // Export CSV
   document.getElementById('exportCSV').addEventListener('click', () => {
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -297,12 +296,12 @@ document.addEventListener('DOMContentLoaded', function() {
     link.click();
     document.body.removeChild(link);
   });
-
+  
   // Import CSV
   document.getElementById('importCSVBtn').addEventListener('click', () => {
     document.getElementById('importCSV').click();
   });
-
+  
   document.getElementById('importCSV').addEventListener('change', (event) => {
     const file = event.target.files[0];
     if(!file) return;
@@ -313,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     reader.readAsText(file);
   });
-
+  
   function parseCSV(csvText) {
     const lines = csvText.split("\n").slice(1);
     lines.forEach(line => {
@@ -336,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
     renderStatistics();
   }
-
+  
   // Modal for Adding/Editing Activities
   const activityForm = document.getElementById('activityForm');
   const openModalBtn = document.getElementById('openActivityModal');
@@ -345,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     modal.classList.remove('hidden');
     modal.style.display = "flex";
   });
-
+  
   const closeModalBtn = document.querySelector('.modal .close');
   closeModalBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
@@ -353,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
     activityForm.reset();
     document.getElementById('intensityValue').textContent = '50%';
   });
-
+  
   modal.addEventListener('click', (event) => {
     if (event.target === modal) {
       modal.classList.add('hidden');
@@ -362,12 +361,12 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('intensityValue').textContent = '50%';
     }
   });
-
+  
   const intensityInput = document.getElementById('emotionIntensity');
   intensityInput.addEventListener('input', (e) => {
     document.getElementById('intensityValue').textContent = e.target.value + '%';
   });
-
+  
   activityForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = document.getElementById('activityTitle').value;
@@ -391,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
     renderStatistics();
   });
-
+  
   dailyActivitiesList.addEventListener('click', (e) => {
     if(e.target.closest('.delete-activity')) {
       const index = e.target.closest('.delete-activity').dataset.index;
@@ -420,11 +419,11 @@ document.addEventListener('DOMContentLoaded', function() {
       renderDailyView();
     }
   });
-
+  
   document.getElementById('searchActivity').addEventListener('input', () => {
     renderDailyView();
   });
-
+  
   // Initial Render
   renderDailyView();
   renderWeeklyView();
