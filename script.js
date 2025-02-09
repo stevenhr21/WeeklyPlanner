@@ -75,6 +75,24 @@ document.addEventListener('DOMContentLoaded', function() {
     return n + "th";
   }
   
+  // Daily view arrow buttons
+  const prevDayBtn = document.getElementById('prevDay');
+  const nextDayBtn = document.getElementById('nextDay');
+  
+  prevDayBtn.addEventListener('click', () => {
+    let date = new Date(selectedDate);
+    date.setDate(date.getDate() - 1);
+    selectedDate = date.toISOString().slice(0,10);
+    renderDailyView();
+  });
+  
+  nextDayBtn.addEventListener('click', () => {
+    let date = new Date(selectedDate);
+    date.setDate(date.getDate() + 1);
+    selectedDate = date.toISOString().slice(0,10);
+    renderDailyView();
+  });
+  
   // Render Daily View (with emoji)
   const dailyDateEl = document.getElementById('dailyDate');
   const dailyActivitiesList = document.getElementById('dailyActivities');
