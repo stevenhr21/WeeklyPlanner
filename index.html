@@ -7,6 +7,8 @@
   <title>Weekly Planner App</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Include Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
@@ -66,7 +68,11 @@
            <div class="widget" id="activitySummary">
              <!-- Summary stats injected via script -->
            </div>
-           <canvas id="chartCanvas" width="400" height="200"></canvas>
+         </div>
+         <div class="charts">
+           <canvas id="barChart"></canvas>
+           <canvas id="lineChart"></canvas>
+           <canvas id="pieChart"></canvas>
          </div>
          <div class="export-import">
            <button id="exportCSV" class="export-btn">Export CSV</button>
