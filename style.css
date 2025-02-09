@@ -72,27 +72,28 @@ body.dark { background: #3d405b; color: #f4f1de; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  /* Ensure a minimum height so empty containers are droppable */
-  min-height: 50px;
+  min-height: 50px; /* Ensures empty containers are droppable */
 }
 .activity-card {
-  border-left: 5px solid; padding: 10px; border-radius: 5px;
+  border-left: 5px solid;
+  padding: 10px; border-radius: 5px;
   background: #f9f9f9; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   display: flex; justify-content: space-between; align-items: center;
   transition: transform 0.2s;
 }
 .activity-card:hover { transform: translateX(5px); }
 .drag-over { border: 2px dashed #e07a5f; }
-.activity-card[data-category="Routine"] { border-color: #81b29a; }
-.activity-card[data-category="Necessary"] { border-color: #3d405b; }
-.activity-card[data-category="Pleasurable"] { border-color: #e07a5f; }
+/* Timeslot accent colours */
+.activity-card[data-slot="Morning"] { border-color: #81b29a; }
+.activity-card[data-slot="Afternoon"] { border-color: #f2cc8f; }
+.activity-card[data-slot="Evening"] { border-color: #e07a5f; }
 .activity-actions button {
   background: none; border: none; cursor: pointer; margin-left: 5px; color: #3d405b;
   transition: transform 0.2s;
 }
 .activity-actions button:hover { transform: scale(1.1); }
 
-/* Weekly, Calendar, Statistics – same as before */
+/* Weekly, Calendar, Statistics – unchanged */
 .weekly-container { display: block; }
 .week-day {
   background: #f9f9f9; border-radius: 5px; padding: 10px; margin-bottom: 15px;
@@ -155,9 +156,7 @@ body.dark { background: #3d405b; color: #f4f1de; }
   transition: transform 0.3s; max-height: 90vh; overflow-y: auto;
 }
 .modal-content h2 { margin-bottom: 15px; color: #3d405b; }
-.modal-content form {
-  display: flex; flex-direction: column; gap: 10px;
-}
+.modal-content form { display: flex; flex-direction: column; gap: 10px; }
 .modal-content form label { font-weight: bold; }
 .modal-content form input[type="text"],
 .modal-content form select,
@@ -175,7 +174,7 @@ body.dark { background: #3d405b; color: #f4f1de; }
   position: absolute; top: 15px; right: 15px; font-size: 1.5em; cursor: pointer; color: #3d405b;
 }
 
-/* Dark Mode Overrides */
+/* Dark Mode */
 body.dark .menu li { background: linear-gradient(45deg, #3d405b, #6a8caf); }
 body.dark .menu li.active { background: linear-gradient(45deg, #e07a5f, #f2cc8f); }
 body.dark .add-activity-btn { background: #3d405b; }
