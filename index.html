@@ -61,18 +61,21 @@
          </div>
        </section>
        
-       <!-- Weekly, Calendar, Statistics (unchanged) -->
+       <!-- Weekly View -->
        <section id="weeklyView" class="page hidden">
          <h2>Weekly Overview</h2>
          <div id="weeklyContainer" class="weekly-container"></div>
        </section>
        
+       <!-- Calendar View -->
        <section id="calendarView" class="page hidden">
          <div id="calendarHeader" class="calendar-header"></div>
          <div id="calendarContainer" class="calendar"></div>
+         <!-- Calendar activities will be grouped in chronological order -->
          <div id="calendarActivities" class="activities-list"></div>
        </section>
        
+       <!-- Statistics -->
        <section id="statsView" class="page hidden">
          <h2>Statistics</h2>
          <div class="stats-widgets">
@@ -93,7 +96,7 @@
     </div>
   </div>
   
-  <!-- Modal -->
+  <!-- Modal for Adding/Editing Activities -->
   <div id="activityModal" class="modal hidden" style="display: none;">
       <div class="modal-content">
           <span class="close">&times;</span>
