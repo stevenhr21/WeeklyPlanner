@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Dark/Light Mode Toggle
   const toggleThemeBtn = document.getElementById('toggleTheme');
-  toggleThemeBtn.addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-  });
+  toggleThemeBtn.addEventListener('click', () => { document.body.classList.toggle('dark'); });
 
   // Page Navigation
   const menuItems = document.querySelectorAll('.menu li');
@@ -18,9 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
       menuItems.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       const pageId = item.dataset.page + 'View';
-      pages.forEach(page => {
-        page.style.display = (page.id === pageId) ? 'block' : 'none';
-      });
+      pages.forEach(page => { page.style.display = (page.id === pageId) ? 'block' : 'none'; });
     });
   });
 
@@ -57,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   loadActivities();
 
-  // Ordinal suffix helper
+  // Ordinal Suffix Helper
   function getOrdinalSuffix(n) {
     let j = n % 10, k = n % 100;
     if(j === 1 && k !== 11) return n + "st";
@@ -66,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return n + "th";
   }
   
-  // Daily View arrow buttons
+  // Daily View Arrow Buttons
   const prevDayBtn = document.getElementById('prevDay');
   const nextDayBtn = document.getElementById('nextDay');
   prevDayBtn.addEventListener('click', () => {
@@ -82,11 +78,11 @@ document.addEventListener('DOMContentLoaded', function() {
     renderDailyView();
   });
   
-  // Render Daily View with timeslot sections
+  // Render Daily View with Timeslot Sections
   const dailyDateEl = document.getElementById('dailyDate');
   function renderDailyView() {
     dailyDateEl.textContent = new Date(selectedDate).toDateString();
-    // Clear timeslot containers
+    // Clear each timeslot container
     ["morningActivities", "afternoonActivities", "eveningActivities"].forEach(id => {
       document.getElementById(id).innerHTML = "";
     });
@@ -94,10 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dayActs = (activities[selectedDate] || []).filter(act => act.title.toLowerCase().includes(searchQuery));
     // Group by timeslot
     let groups = { "Morning": [], "Afternoon": [], "Evening": [] };
-    dayActs.forEach(act => {
-      groups[act.timeslot] = groups[act.timeslot] || [];
-      groups[act.timeslot].push(act);
-    });
+    dayActs.forEach(act => { groups[act.timeslot] = groups[act.timeslot] || []; groups[act.timeslot].push(act); });
     // For each timeslot, sort and render cards
     ["Morning", "Afternoon", "Evening"].forEach(slot => {
       groups[slot].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -130,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
           </div>
         `;
-        // Card drag events
+        // Add drag events (desktop)
         card.addEventListener("dragstart", (e) => {
           e.dataTransfer.setData("application/json", JSON.stringify({ slot: slot, index: parseInt(index,10) }));
         });
@@ -143,9 +136,49 @@ document.addEventListener('DOMContentLoaded', function() {
           const source = JSON.parse(e.dataTransfer.getData("application/json"));
           moveActivity(source.slot, source.index, slot, parseInt(index,10));
         });
+        // Add touch events for mobile support
+        if ('ontouchstart' in window) {
+          card.addEventListener("touchstart", function(e) {
+            e.stopPropagation();
+            let touch = e.touches[0];
+            let rect = card.getBoundingClientRect();
+            card.dataset.offsetX = touch.clientX - rect.left;
+            card.dataset.offsetY = touch.clientY - rect.top;
+            card.classList.add("dragging");
+          }, false);
+          card.addEventListener("touchmove", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let touch = e.touches[0];
+            card.style.position = "absolute";
+            card.style.left = (touch.clientX - card.dataset.offsetX) + "px";
+            card.style.top = (touch.clientY - card.dataset.offsetY) + "px";
+          }, false);
+          card.addEventListener("touchend", function(e) {
+            e.stopPropagation();
+            card.style.position = "";
+            card.style.left = "";
+            card.style.top = "";
+            card.classList.remove("dragging");
+            let touch = e.changedTouches[0];
+            let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            let targetContainer = dropTarget.closest(".activities-list");
+            if(targetContainer) {
+              let targetSlot = targetContainer.parentElement.dataset.slot;
+              let targetCard = dropTarget.closest(".activity-card");
+              let targetIndex = targetContainer.childElementCount;
+              if(targetCard && targetCard.parentElement === targetContainer) {
+                targetIndex = parseInt(targetCard.dataset.index,10);
+              }
+              let sourceSlot = card.dataset.slot;
+              let sourceIndex = parseInt(card.dataset.index,10);
+              moveActivity(sourceSlot, sourceIndex, targetSlot, targetIndex);
+            }
+          }, false);
+        }
         container.appendChild(card);
       });
-      // Allow dropping onto container (for empty areas or appending)
+      // Enable drop on container (for empty areas)
       container.addEventListener("dragover", (e) => { e.preventDefault(); container.classList.add("drag-over"); });
       container.addEventListener("dragleave", (e) => { container.classList.remove("drag-over"); });
       container.addEventListener("drop", (e) => {
@@ -155,6 +188,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const source = JSON.parse(e.dataTransfer.getData("application/json"));
         moveActivity(source.slot, source.index, slot, container.childElementCount);
       });
+      // Touch events on container for mobile
+      if ('ontouchstart' in window) {
+        container.addEventListener("touchstart", function(e) { e.stopPropagation(); }, false);
+        container.addEventListener("touchmove", function(e) { e.stopPropagation(); }, false);
+        container.addEventListener("touchend", function(e) {
+          e.stopPropagation();
+          let touch = e.changedTouches[0];
+          let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+          let targetContainer = dropTarget.closest(".activities-list");
+          if(targetContainer) {
+            let targetSlot = targetContainer.parentElement.dataset.slot;
+            let targetCard = dropTarget.closest(".activity-card");
+            let targetIndex = targetContainer.childElementCount;
+            if(targetCard && targetCard.parentElement === targetContainer) {
+              targetIndex = parseInt(targetCard.dataset.index,10);
+            }
+            // For touch, we assume the dragged card is the one that has the "dragging" class
+            let sourceCard = document.querySelector(".activity-card.dragging");
+            if(sourceCard) {
+              let sourceSlot = sourceCard.dataset.slot;
+              let sourceIndex = parseInt(sourceCard.dataset.index,10);
+              moveActivity(sourceSlot, sourceIndex, targetSlot, targetIndex);
+            }
+          }
+        }, false);
+      }
     });
   }
   
@@ -182,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderDailyView();
   }
   
-  // Event delegation for delete and edit
+  // Event delegation for delete and edit buttons
   document.getElementById("dailyActivities").addEventListener("click", function(e) {
     const deleteBtn = e.target.closest(".delete-activity");
     const editBtn = e.target.closest(".edit-activity");
@@ -262,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Calendar View (unchanged)
+  // Calendar View: Activities grouped in chronological order (Morning, then Afternoon, then Evening)
   const calendarContainer = document.getElementById('calendarContainer');
   const calendarHeader = document.getElementById('calendarHeader');
   const calendarActivities = document.getElementById('calendarActivities');
@@ -293,9 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const dayCell = document.createElement('div');
       dayCell.className = 'day';
       dayCell.textContent = d;
-      if(activities[dateStr] && activities[dateStr].length > 0) {
-        dayCell.classList.add('has-activity');
-      }
+      if(activities[dateStr] && activities[dateStr].length > 0) { dayCell.classList.add('has-activity'); }
       dayCell.addEventListener('click', () => {
         document.querySelectorAll('.calendar .day').forEach(el => el.classList.remove('selected'));
         dayCell.classList.add('selected');
@@ -317,13 +374,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   function renderCalendarActivities(dateStr) {
     calendarActivities.innerHTML = `<h3>Activities for ${new Date(dateStr).toDateString()}</h3>`;
-    const acts = activities[dateStr] || [];
-    acts.sort((a, b) => (a.order || 0) - (b.order || 0));
-    acts.forEach(act => {
+    const dayActs = activities[dateStr] || [];
+    let groups = { "Morning": [], "Afternoon": [], "Evening": [] };
+    dayActs.forEach(act => { groups[act.timeslot] = groups[act.timeslot] || []; groups[act.timeslot].push(act); });
+    ["Morning", "Afternoon", "Evening"].forEach(slot => { groups[slot].sort((a, b) => (a.order || 0) - (b.order || 0)); });
+    const sorted = [].concat(groups["Morning"], groups["Afternoon"], groups["Evening"]);
+    sorted.forEach(act => {
       const emoji = getEmoji(act.emotion);
-      const card = document.createElement('div');
-      card.className = 'activity-card';
-      card.dataset.category = act.category;
+      const card = document.createElement("div");
+      card.className = "activity-card";
+      card.dataset.slot = act.timeslot;
       card.innerHTML = `<div>
           <strong>${act.title}</strong><br>
           <small>${act.timeslot} | ${act.emotion} ${emoji} (${act.intensity}%)</small>
@@ -538,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderStatistics();
   });
   
-  // Initial render
+  // Initial Render
   renderDailyView();
   renderWeeklyView();
   renderCalendar();
