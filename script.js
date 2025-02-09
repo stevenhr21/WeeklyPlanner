@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Ensure modal starts hidden
+  // Hide modal initially
   const modal = document.getElementById('activityModal');
   modal.classList.add('hidden');
   modal.style.display = "none";
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.classList.toggle('dark');
   });
 
-  // Navigation between pages (only active page is displayed)
+  // Page Navigation
   const menuItems = document.querySelectorAll('.menu li');
   const pages = document.querySelectorAll('.page');
   menuItems.forEach(item => {
@@ -19,16 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
       item.classList.add('active');
       const pageId = item.dataset.page + 'View';
       pages.forEach(page => {
-        if (page.id === pageId) {
-          page.style.display = 'block';
-        } else {
-          page.style.display = 'none';
-        }
+        page.style.display = (page.id === pageId) ? 'block' : 'none';
       });
     });
   });
 
-  // Mapping: emotion to emoji
+  // Map emotion to emoji
   function getEmoji(emotion) {
     switch(emotion.toLowerCase()){
       case 'happy': return '😊';
@@ -45,28 +41,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Data storage for activities keyed by "YYYY-MM-DD"
+  // Global data
   let activities = {};
   let selectedDate = new Date().toISOString().slice(0,10);
   let currentMonth = new Date().getMonth();
   let currentYear = new Date().getFullYear();
 
-  // Load activities from localStorage
+  // Persistence via localStorage
   function loadActivities() {
     const stored = localStorage.getItem("weeklyPlannerActivities");
-    if (stored) {
-      activities = JSON.parse(stored);
-    }
+    if(stored) activities = JSON.parse(stored);
   }
-  
-  // Save activities to localStorage
   function saveActivities() {
     localStorage.setItem("weeklyPlannerActivities", JSON.stringify(activities));
   }
-  
   loadActivities();
 
-  // Helper: ordinal suffix
+  // Ordinal suffix helper
   function getOrdinalSuffix(n) {
     let j = n % 10, k = n % 100;
     if(j === 1 && k !== 11) return n + "st";
@@ -75,67 +66,172 @@ document.addEventListener('DOMContentLoaded', function() {
     return n + "th";
   }
   
-  // Daily view arrow buttons
+  // Daily View arrow buttons
   const prevDayBtn = document.getElementById('prevDay');
   const nextDayBtn = document.getElementById('nextDay');
-  
   prevDayBtn.addEventListener('click', () => {
-    let date = new Date(selectedDate);
-    date.setDate(date.getDate() - 1);
-    selectedDate = date.toISOString().slice(0,10);
+    let d = new Date(selectedDate);
+    d.setDate(d.getDate() - 1);
+    selectedDate = d.toISOString().slice(0,10);
     renderDailyView();
   });
-  
   nextDayBtn.addEventListener('click', () => {
-    let date = new Date(selectedDate);
-    date.setDate(date.getDate() + 1);
-    selectedDate = date.toISOString().slice(0,10);
+    let d = new Date(selectedDate);
+    d.setDate(d.getDate() + 1);
+    selectedDate = d.toISOString().slice(0,10);
     renderDailyView();
   });
   
-  // Render Daily View (with emoji)
+  // Render Daily View with timeslot sections
   const dailyDateEl = document.getElementById('dailyDate');
-  const dailyActivitiesList = document.getElementById('dailyActivities');
   function renderDailyView() {
     dailyDateEl.textContent = new Date(selectedDate).toDateString();
+    // Clear timeslot containers
+    ["morningActivities", "afternoonActivities", "eveningActivities"].forEach(id => {
+      document.getElementById(id).innerHTML = "";
+    });
     const searchQuery = document.getElementById('searchActivity').value.toLowerCase();
-    dailyActivitiesList.innerHTML = '';
-    const dayActivities = (activities[selectedDate] || []).filter(act =>
-      act.title.toLowerCase().includes(searchQuery)
-    );
-    const order = { 'Morning': 1, 'Afternoon': 2, 'Evening': 3 };
-    dayActivities.sort((a, b) => order[a.timeslot] - order[b.timeslot]);
-    dayActivities.forEach((act, index) => {
-      const emoji = getEmoji(act.emotion);
-      const card = document.createElement('div');
-      card.className = 'activity-card';
-      card.dataset.category = act.category;
-      card.innerHTML = `
-         <div>
-           <strong>${act.title}</strong><br>
-           <small>${act.timeslot} | ${act.emotion} ${emoji} (${act.intensity}%)</small>
-           ${act.notes ? `<br><em>${act.notes}</em>` : ''}
-         </div>
-         <div class="activity-actions">
-           <button class="edit-activity" data-index="${index}" title="Edit">
-             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon pencil-icon" viewBox="0 0 16 16">
-               <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2L3 10.207V13h2.793L14 4.793 11.207 2z"/>
-             </svg>
-           </button>
-           <button class="delete-activity" data-index="${index}" title="Delete">
-             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon bin-icon" viewBox="0 0 16 16">
-               <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5v-7z"/>
-               <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2h3.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM11.882 4H4.118L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4z"/>
-               <path d="M8 1a2 2 0 0 0-2 2h4a2 2 0 0 0-2-2z"/>
-             </svg>
-           </button>
-         </div>
-      `;
-      dailyActivitiesList.appendChild(card);
+    const dayActs = (activities[selectedDate] || []).filter(act => act.title.toLowerCase().includes(searchQuery));
+    // Group by timeslot
+    let groups = { "Morning": [], "Afternoon": [], "Evening": [] };
+    dayActs.forEach(act => {
+      groups[act.timeslot] = groups[act.timeslot] || [];
+      groups[act.timeslot].push(act);
+    });
+    // For each timeslot, sort and render cards
+    ["Morning", "Afternoon", "Evening"].forEach(slot => {
+      groups[slot].sort((a, b) => (a.order || 0) - (b.order || 0));
+      const container = document.getElementById(slot.toLowerCase() + "Activities");
+      groups[slot].forEach((act, index) => {
+        const emoji = getEmoji(act.emotion);
+        const card = document.createElement("div");
+        card.className = "activity-card";
+        card.dataset.index = index;
+        card.dataset.slot = slot;
+        card.setAttribute("draggable", "true");
+        card.innerHTML = `
+          <div>
+            <strong>${act.title}</strong><br>
+            <small>${act.timeslot} | ${act.emotion} ${emoji} (${act.intensity}%)</small>
+            ${act.notes ? `<br><em>${act.notes}</em>` : ''}
+          </div>
+          <div class="activity-actions">
+            <button class="edit-activity" data-index="${index}" data-slot="${slot}" title="Edit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon pencil-icon" viewBox="0 0 16 16">
+                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2L3 10.207V13h2.793L14 4.793 11.207 2z"/>
+              </svg>
+            </button>
+            <button class="delete-activity" data-index="${index}" data-slot="${slot}" title="Delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon bin-icon" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5v-7z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2h3.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM11.882 4H4.118L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4z"/>
+                <path d="M8 1a2 2 0 0 0-2 2h4a2 2 0 0 0-2-2z"/>
+              </svg>
+            </button>
+          </div>
+        `;
+        // Card drag events
+        card.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("application/json", JSON.stringify({ slot: slot, index: parseInt(index,10) }));
+        });
+        card.addEventListener("dragover", (e) => { e.preventDefault(); card.classList.add("drag-over"); });
+        card.addEventListener("dragleave", (e) => { card.classList.remove("drag-over"); });
+        card.addEventListener("drop", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          card.classList.remove("drag-over");
+          const source = JSON.parse(e.dataTransfer.getData("application/json"));
+          moveActivity(source.slot, source.index, slot, parseInt(index,10));
+        });
+        container.appendChild(card);
+      });
+      // Allow dropping onto container (for empty areas or appending)
+      container.addEventListener("dragover", (e) => { e.preventDefault(); container.classList.add("drag-over"); });
+      container.addEventListener("dragleave", (e) => { container.classList.remove("drag-over"); });
+      container.addEventListener("drop", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        container.classList.remove("drag-over");
+        const source = JSON.parse(e.dataTransfer.getData("application/json"));
+        moveActivity(source.slot, source.index, slot, container.childElementCount);
+      });
     });
   }
   
-  // Render Weekly View (vertical list)
+  // Function to move an activity between timeslot groups
+  function moveActivity(fromSlot, fromIndex, toSlot, toIndex) {
+    fromIndex = parseInt(fromIndex, 10);
+    toIndex = parseInt(toIndex, 10);
+    let dayActs = activities[selectedDate] || [];
+    let groups = { "Morning": [], "Afternoon": [], "Evening": [] };
+    dayActs.forEach(act => {
+      groups[act.timeslot] = groups[act.timeslot] || [];
+      groups[act.timeslot].push(act);
+    });
+    ["Morning", "Afternoon", "Evening"].forEach(s => {
+      groups[s].sort((a, b) => (a.order || 0) - (b.order || 0));
+    });
+    const [dragged] = groups[fromSlot].splice(fromIndex, 1);
+    dragged.timeslot = toSlot;
+    groups[toSlot].splice(toIndex, 0, dragged);
+    ["Morning", "Afternoon", "Evening"].forEach(s => {
+      groups[s].forEach((act, idx) => { act.order = idx; });
+    });
+    activities[selectedDate] = [].concat(groups["Morning"], groups["Afternoon"], groups["Evening"]);
+    saveActivities();
+    renderDailyView();
+  }
+  
+  // Event delegation for delete and edit
+  document.getElementById("dailyActivities").addEventListener("click", function(e) {
+    const deleteBtn = e.target.closest(".delete-activity");
+    const editBtn = e.target.closest(".edit-activity");
+    if(deleteBtn) {
+      const slot = deleteBtn.dataset.slot;
+      const index = parseInt(deleteBtn.dataset.index,10);
+      deleteActivity(slot, index);
+    }
+    if(editBtn) {
+      const slot = editBtn.dataset.slot;
+      const index = parseInt(editBtn.dataset.index,10);
+      editActivity(slot, index);
+    }
+  });
+  function deleteActivity(slot, index) {
+    let dayActs = activities[selectedDate] || [];
+    let groups = { "Morning": [], "Afternoon": [], "Evening": [] };
+    dayActs.forEach(act => { groups[act.timeslot] = groups[act.timeslot] || []; groups[act.timeslot].push(act); });
+    groups[slot].sort((a, b) => (a.order || 0) - (b.order || 0));
+    groups[slot].splice(index, 1);
+    ["Morning", "Afternoon", "Evening"].forEach(s => { groups[s].forEach((act, idx) => { act.order = idx; }); });
+    activities[selectedDate] = [].concat(groups["Morning"], groups["Afternoon"], groups["Evening"]);
+    saveActivities();
+    renderDailyView();
+  }
+  function editActivity(slot, index) {
+    let dayActs = activities[selectedDate] || [];
+    let groups = { "Morning": [], "Afternoon": [], "Evening": [] };
+    dayActs.forEach(act => { groups[act.timeslot] = groups[act.timeslot] || []; groups[act.timeslot].push(act); });
+    groups[slot].sort((a, b) => (a.order || 0) - (b.order || 0));
+    const act = groups[slot][index];
+    document.getElementById('activityTitle').value = act.title;
+    document.getElementById('activityCategory').value = act.category;
+    document.getElementById('activityEmotion').value = act.emotion;
+    document.getElementById('emotionIntensity').value = act.intensity;
+    document.getElementById('intensityValue').textContent = act.intensity + '%';
+    document.getElementById('activityTime').value = act.timeslot;
+    document.getElementById('activityNotes').value = act.notes || "";
+    document.getElementById('selectedDate').value = act.date;
+    modal.classList.remove('hidden');
+    modal.style.display = "flex";
+    groups[slot].splice(index, 1);
+    ["Morning", "Afternoon", "Evening"].forEach(s => { groups[s].forEach((item, idx) => { item.order = idx; }); });
+    activities[selectedDate] = [].concat(groups["Morning"], groups["Afternoon"], groups["Evening"]);
+    saveActivities();
+    renderDailyView();
+  }
+  
+  // Weekly View (unchanged)
   const weeklyContainer = document.getElementById('weeklyContainer');
   function renderWeeklyView() {
     weeklyContainer.innerHTML = '';
@@ -150,8 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
       dayDiv.className = 'week-day';
       dayDiv.innerHTML = `<h3>${d.toLocaleDateString('en-US', { weekday: 'long' })} – ${getOrdinalSuffix(d.getDate())} ${d.toLocaleString('default', { month: 'long' })}</h3>`;
       const acts = activities[dateStr] || [];
-      const order = { 'Morning': 1, 'Afternoon': 2, 'Evening': 3 };
-      acts.sort((a, b) => order[a.timeslot] - order[b.timeslot]);
+      acts.sort((a, b) => (a.order || 0) - (b.order || 0));
       acts.forEach(act => {
         const emoji = getEmoji(act.emotion);
         const card = document.createElement('div');
@@ -167,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Render Calendar View (with emoji)
+  // Calendar View (unchanged)
   const calendarContainer = document.getElementById('calendarContainer');
   const calendarHeader = document.getElementById('calendarHeader');
   const calendarActivities = document.getElementById('calendarActivities');
@@ -175,8 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calendarContainer.innerHTML = '';
     calendarHeader.innerHTML = `
       <button id="prevMonth">◀</button>
-      <span id="monthYear">${new Date(currentYear, currentMonth)
-        .toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+      <span id="monthYear">${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
       <button id="nextMonth">▶</button>
     `;
     const grid = document.createElement('div');
@@ -210,31 +304,21 @@ document.addEventListener('DOMContentLoaded', function() {
       grid.appendChild(dayCell);
     }
     calendarContainer.appendChild(grid);
-    
     document.getElementById('prevMonth').addEventListener('click', () => {
       currentMonth--;
-      if(currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
+      if(currentMonth < 0) { currentMonth = 11; currentYear--; }
       renderCalendar();
     });
-    
     document.getElementById('nextMonth').addEventListener('click', () => {
       currentMonth++;
-      if(currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
+      if(currentMonth > 11) { currentMonth = 0; currentYear++; }
       renderCalendar();
     });
   }
-  
   function renderCalendarActivities(dateStr) {
     calendarActivities.innerHTML = `<h3>Activities for ${new Date(dateStr).toDateString()}</h3>`;
     const acts = activities[dateStr] || [];
-    const order = { 'Morning': 1, 'Afternoon': 2, 'Evening': 3 };
-    acts.sort((a, b) => order[a.timeslot] - order[b.timeslot]);
+    acts.sort((a, b) => (a.order || 0) - (b.order || 0));
     acts.forEach(act => {
       const emoji = getEmoji(act.emotion);
       const card = document.createElement('div');
@@ -249,13 +333,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Render Statistics and update dashboard charts
+  // Statistics & Dashboard (unchanged)
   function renderStatistics() {
-    let totalActivities = 0;
-    let routineCount = 0, necessaryCount = 0, pleasurableCount = 0;
+    let totalActivities = 0, routineCount = 0, necessaryCount = 0, pleasurableCount = 0;
     let totalIntensity = 0, countIntensity = 0;
     let emotionCounts = {};
-    // Iterate over all dates and activities
     for(let date in activities) {
       activities[date].forEach(act => {
          totalActivities++;
@@ -264,7 +346,6 @@ document.addEventListener('DOMContentLoaded', function() {
          if(act.category === 'Routine') routineCount++;
          if(act.category === 'Necessary') necessaryCount++;
          if(act.category === 'Pleasurable') pleasurableCount++;
-         // Count emotions
          const emo = act.emotion;
          emotionCounts[emo] = (emotionCounts[emo] || 0) + 1;
       });
@@ -281,10 +362,8 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDashboard({routineCount, necessaryCount, pleasurableCount, emotionCounts});
   }
   
-  // Create/update charts using Chart.js
   let barChart, lineChart, pieChart;
   function updateDashboard({routineCount, necessaryCount, pleasurableCount, emotionCounts}) {
-    // Bar Chart Data – activity counts by category
     const barCtx = document.getElementById('barChart').getContext('2d');
     if(barChart) barChart.destroy();
     barChart = new Chart(barCtx, {
@@ -297,17 +376,10 @@ document.addEventListener('DOMContentLoaded', function() {
           backgroundColor: ['#81b29a', '#3d405b', '#e07a5f']
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
-    
-    // Line Chart Data – average intensity over time
-    // Get dates from activities object and sort them
     const dates = Object.keys(activities).sort();
-    const lineLabels = [];
-    const lineData = [];
+    const lineLabels = [], lineData = [];
     dates.forEach(date => {
       const acts = activities[date];
       const total = acts.reduce((sum, act) => sum + parseInt(act.intensity), 0);
@@ -328,13 +400,8 @@ document.addEventListener('DOMContentLoaded', function() {
           fill: false
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
-    
-    // Pie Chart Data – distribution of emotions
     const pieLabels = Object.keys(emotionCounts);
     const pieData = Object.values(emotionCounts);
     const pieCtx = document.getElementById('pieChart').getContext('2d');
@@ -347,7 +414,6 @@ document.addEventListener('DOMContentLoaded', function() {
           label: 'Emotion Distribution',
           data: pieData,
           backgroundColor: pieLabels.map(label => {
-            // Use accent colors or fallback to a default color palette
             switch(label.toLowerCase()){
               case 'happy': return '#81b29a';
               case 'sad': return '#3d405b';
@@ -364,17 +430,12 @@ document.addEventListener('DOMContentLoaded', function() {
           })
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
   }
   
-  // Export CSV
   document.getElementById('exportCSV').addEventListener('click', () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Date,Title,Category,Emotion,Intensity,Time,Notes\n";
+    let csvContent = "data:text/csv;charset=utf-8,Date,Title,Category,Emotion,Intensity,Time,Notes\n";
     for(let date in activities) {
       activities[date].forEach(act => {
         csvContent += `${date},"${act.title}",${act.category},${act.emotion},${act.intensity},${act.timeslot},"${act.notes || ''}"\n`;
@@ -389,7 +450,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.removeChild(link);
   });
   
-  // Import CSV
   document.getElementById('importCSVBtn').addEventListener('click', () => {
     document.getElementById('importCSV').click();
   });
@@ -398,10 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const file = event.target.files[0];
     if(!file) return;
     const reader = new FileReader();
-    reader.onload = function(e) {
-      const text = e.target.result;
-      parseCSV(text);
-    };
+    reader.onload = (e) => { parseCSV(e.target.result); };
     reader.readAsText(file);
   });
   
@@ -418,7 +475,8 @@ document.addEventListener('DOMContentLoaded', function() {
         emotion: emotion,
         intensity: intensity,
         timeslot: timeslot,
-        notes: notes.replace(/"/g, '')
+        notes: notes.replace(/"/g, ''),
+        order: activities[date].length
       });
     });
     saveActivities();
@@ -428,7 +486,6 @@ document.addEventListener('DOMContentLoaded', function() {
     renderStatistics();
   }
   
-  // Modal for Adding/Editing Activities
   const activityForm = document.getElementById('activityForm');
   const openModalBtn = document.getElementById('openActivityModal');
   openModalBtn.addEventListener('click', () => {
@@ -445,8 +502,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('intensityValue').textContent = '50%';
   });
   
-  modal.addEventListener('click', (event) => {
-    if (event.target === modal) {
+  modal.addEventListener('click', (e) => {
+    if(e.target === modal) {
       modal.classList.add('hidden');
       modal.style.display = "none";
       activityForm.reset();
@@ -468,55 +525,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const timeslot = document.getElementById('activityTime').value;
     const notes = document.getElementById('activityNotes').value;
     const date = document.getElementById('selectedDate').value;
-    if (!activities[date]) {
-      activities[date] = [];
-    }
-    activities[date].push({ title, category, emotion, intensity, timeslot, notes, date });
+    if(!activities[date]) activities[date] = [];
+    activities[date].push({ title, category, emotion, intensity, timeslot, notes, date, order: activities[date].length });
     saveActivities();
     activityForm.reset();
     document.getElementById('intensityValue').textContent = '50%';
     modal.classList.add('hidden');
     modal.style.display = "none";
-    if (date === selectedDate) renderDailyView();
+    if(date === selectedDate) renderDailyView();
     renderWeeklyView();
     renderCalendar();
     renderStatistics();
   });
   
-  dailyActivitiesList.addEventListener('click', (e) => {
-    if(e.target.closest('.delete-activity')) {
-      const index = e.target.closest('.delete-activity').dataset.index;
-      activities[selectedDate].splice(index, 1);
-      saveActivities();
-      renderDailyView();
-      renderWeeklyView();
-      renderCalendar();
-      renderStatistics();
-    }
-    if(e.target.closest('.edit-activity')) {
-      const index = e.target.closest('.edit-activity').dataset.index;
-      const act = activities[selectedDate][index];
-      document.getElementById('activityTitle').value = act.title;
-      document.getElementById('activityCategory').value = act.category;
-      document.getElementById('activityEmotion').value = act.emotion;
-      document.getElementById('emotionIntensity').value = act.intensity;
-      document.getElementById('intensityValue').textContent = act.intensity + '%';
-      document.getElementById('activityTime').value = act.timeslot;
-      document.getElementById('activityNotes').value = act.notes || "";
-      document.getElementById('selectedDate').value = act.date;
-      modal.classList.remove('hidden');
-      modal.style.display = "flex";
-      activities[selectedDate].splice(index, 1);
-      saveActivities();
-      renderDailyView();
-    }
-  });
-  
-  document.getElementById('searchActivity').addEventListener('input', () => {
-    renderDailyView();
-  });
-  
-  // Initial Render
+  // Initial render
   renderDailyView();
   renderWeeklyView();
   renderCalendar();
