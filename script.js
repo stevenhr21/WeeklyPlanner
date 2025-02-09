@@ -249,11 +249,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Render Statistics and update chart
+  // Render Statistics and update dashboard charts
   function renderStatistics() {
     let totalActivities = 0;
     let routineCount = 0, necessaryCount = 0, pleasurableCount = 0;
     let totalIntensity = 0, countIntensity = 0;
+    let emotionCounts = {};
+    // Iterate over all dates and activities
     for(let date in activities) {
       activities[date].forEach(act => {
          totalActivities++;
@@ -262,6 +264,9 @@ document.addEventListener('DOMContentLoaded', function() {
          if(act.category === 'Routine') routineCount++;
          if(act.category === 'Necessary') necessaryCount++;
          if(act.category === 'Pleasurable') pleasurableCount++;
+         // Count emotions
+         const emo = act.emotion;
+         emotionCounts[emo] = (emotionCounts[emo] || 0) + 1;
       });
     }
     const avgIntensity = countIntensity ? (totalIntensity/countIntensity).toFixed(1) : 0;
@@ -273,27 +278,96 @@ document.addEventListener('DOMContentLoaded', function() {
       <p>Avg. Intensity: ${avgIntensity}%</p>
     `;
     document.getElementById('statsContent').innerHTML = `<p>More detailed stats coming soon...</p>`;
-    updateChart(routineCount, necessaryCount, pleasurableCount);
+    updateDashboard({routineCount, necessaryCount, pleasurableCount, emotionCounts});
   }
   
-  function updateChart(routine, necessary, pleasurable) {
-    const canvas = document.getElementById('chartCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const data = [routine, necessary, pleasurable];
-    const labels = ['Routine', 'Necessary', 'Pleasurable'];
-    const colors = ['#81b29a', '#3d405b', '#e07a5f'];
-    const maxVal = Math.max(...data, 10);
-    const barWidth = 50;
-    const gap = 30;
-    data.forEach((value, index) => {
-      const barHeight = (value / maxVal) * canvas.height;
-      ctx.fillStyle = colors[index];
-      ctx.fillRect(index * (barWidth + gap) + gap, canvas.height - barHeight, barWidth, barHeight);
-      ctx.fillStyle = "#000";
-      ctx.font = "14px Roboto, sans-serif";
-      ctx.fillText(labels[index], index * (barWidth + gap) + gap, canvas.height - barHeight - 10);
-      ctx.fillText(value, index * (barWidth + gap) + gap, canvas.height - barHeight - 30);
+  // Create/update charts using Chart.js
+  let barChart, lineChart, pieChart;
+  function updateDashboard({routineCount, necessaryCount, pleasurableCount, emotionCounts}) {
+    // Bar Chart Data – activity counts by category
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    if(barChart) barChart.destroy();
+    barChart = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Routine', 'Necessary', 'Pleasurable'],
+        datasets: [{
+          label: 'Activity Count',
+          data: [routineCount, necessaryCount, pleasurableCount],
+          backgroundColor: ['#81b29a', '#3d405b', '#e07a5f']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+    
+    // Line Chart Data – average intensity over time
+    // Get dates from activities object and sort them
+    const dates = Object.keys(activities).sort();
+    const lineLabels = [];
+    const lineData = [];
+    dates.forEach(date => {
+      const acts = activities[date];
+      const total = acts.reduce((sum, act) => sum + parseInt(act.intensity), 0);
+      const avg = (total / acts.length).toFixed(1);
+      lineLabels.push(date);
+      lineData.push(avg);
+    });
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    if(lineChart) lineChart.destroy();
+    lineChart = new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          label: 'Avg. Intensity',
+          data: lineData,
+          borderColor: '#e07a5f',
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+    
+    // Pie Chart Data – distribution of emotions
+    const pieLabels = Object.keys(emotionCounts);
+    const pieData = Object.values(emotionCounts);
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    if(pieChart) pieChart.destroy();
+    pieChart = new Chart(pieCtx, {
+      type: 'pie',
+      data: {
+        labels: pieLabels,
+        datasets: [{
+          label: 'Emotion Distribution',
+          data: pieData,
+          backgroundColor: pieLabels.map(label => {
+            // Use accent colors or fallback to a default color palette
+            switch(label.toLowerCase()){
+              case 'happy': return '#81b29a';
+              case 'sad': return '#3d405b';
+              case 'stressed': return '#e07a5f';
+              case 'anxious': return '#f2cc8f';
+              case 'excited': return '#e07a5f';
+              case 'calm': return '#81b29a';
+              case 'angry': return '#3d405b';
+              case 'bored': return '#f2cc8f';
+              case 'content': return '#81b29a';
+              case 'frustrated': return '#e07a5f';
+              default: return '#ccc';
+            }
+          })
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
     });
   }
   
