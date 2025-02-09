@@ -109,6 +109,21 @@ body.dark {
   text-align: center;
 }
 
+/* Style daily view arrows like calendar arrows */
+.nav-arrow {
+  background: #e07a5f;
+  border: none;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.nav-arrow:hover {
+  background: #d65a46;
+}
+
 .daily-controls {
   display: flex;
   justify-content: space-between;
